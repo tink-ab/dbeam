@@ -31,7 +31,6 @@ import java.nio.channels.WritableByteChannel;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Map;
 
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
@@ -196,14 +195,11 @@ public class JdbcAvroIO {
       try (ResultSet resultSet = executeQuery(query)) {
         checkArgument(resultSet != null,
                       "JDBC resultSet was not properly created");
-        final Map<Integer, JdbcAvroRecord.SqlFunction<ResultSet, Object>>
-            mappings = JdbcAvroRecord.computeAllMappings(resultSet);
-        final int columnCount = resultSet.getMetaData().getColumnCount();
+        final JdbcAvroRecordWriter jdbcAvroRecordWriter =
+            JdbcAvroRecordWriter.create(this.dataFileWriter, resultSet);
         this.metering.startIterate();
         while (resultSet.next()) {
-          final GenericRecord genericRecord = JdbcAvroRecord.convertResultSetIntoAvroRecord(
-              schema, resultSet, mappings, columnCount);
-          this.dataFileWriter.append(genericRecord);
+          jdbcAvroRecordWriter.writeSingleRecord();
           this.metering.incrementRecordCount();
         }
         this.dataFileWriter.sync();
