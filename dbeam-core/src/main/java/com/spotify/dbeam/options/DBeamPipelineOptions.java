@@ -59,4 +59,25 @@ public interface DBeamPipelineOptions extends PipelineOptions {
   String getPassword();
 
   void setPassword(String value);
+
+  @Description("URL to access the vault server.")
+  String getVaultUrl();
+
+  void setVaultUrl(String value);
+
+  @Description("Certificate file to use for https when talking to Vault server.")
+  String getVaultCert();
+
+  void setVaultCert(String value);
+
+  @Description("Role to use to authenticate to vault.")
+  String getVaultRole();
+
+  void setVaultRole(String value);
+
+  @Description("Path in the vault to find username and password values. "
+               +  "Example: database/creds/mysql-users-reader")
+  String getVaultPath();
+
+  void setVaultPath(String value);
 }
