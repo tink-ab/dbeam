@@ -28,6 +28,11 @@
         <artifactId>beam-sdks-java-core</artifactId>
       </dependency>
 
+      <dependency>
+        <groupId>org.apache.beam</groupId>
+        <artifactId>beam-sdks-java-io-amazon-web-services</artifactId>
+      </dependency>
+
       <!-- Log -->
       <dependency>
         <groupId>org.slf4j</groupId>

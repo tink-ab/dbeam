@@ -158,6 +158,22 @@
                 <version>${beam.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.beam</groupId>
+                <artifactId>beam-sdks-java-io-amazon-web-services</artifactId>
+                <version>${beam.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>joda-time</groupId>
+                        <artifactId>joda-time</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
             <!-- Log -->
             <dependency>
                 <groupId>org.slf4j</groupId>
