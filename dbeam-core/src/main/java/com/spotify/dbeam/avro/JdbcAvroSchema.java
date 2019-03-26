@@ -52,8 +52,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import java.util.List;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,13 +65,19 @@ public class JdbcAvroSchema {
 
   public static Schema createSchemaByReadingOneRow(
       Connection connection, String tableName, String avroSchemaNamespace,
-      String avroDoc, boolean useLogicalTypes)
+      String avroDoc, boolean useLogicalTypes, List<String> fields)
       throws SQLException {
     LOGGER.debug("Creating Avro schema based on the first read row from the database");
     try (Statement statement = connection.createStatement()) {
+      String fieldsList;
+      if (fields.isEmpty()) {
+        fieldsList = "*";
+      } else {
+        fieldsList = StringUtils.join(fields, ',');
+      }
       final ResultSet
           resultSet =
-          statement.executeQuery(String.format("SELECT * FROM %s LIMIT 1", tableName));
+          statement.executeQuery(String.format("SELECT %s FROM %s LIMIT 1", fieldsList, tableName));
 
       Schema schema = JdbcAvroSchema.createAvroSchema(
           resultSet, avroSchemaNamespace, connection.getMetaData().getURL(), avroDoc,

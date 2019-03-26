@@ -26,8 +26,10 @@ import com.google.common.collect.Lists;
 
 import java.io.Serializable;
 import java.sql.Connection;
+import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
@@ -49,6 +51,8 @@ public abstract class QueryBuilderArgs implements Serializable {
 
   public abstract ReadablePeriod partitionPeriod();
 
+  public abstract Optional<List<String>> fields();
+
   public abstract Builder builder();
 
   @AutoValue.Builder
@@ -69,6 +73,8 @@ public abstract class QueryBuilderArgs implements Serializable {
     public abstract Builder setPartition(Optional<DateTime> partition);
 
     public abstract Builder setPartitionPeriod(ReadablePeriod partitionPeriod);
+
+    public abstract Builder setFields(Optional<List<String>> fields);
 
     public abstract QueryBuilderArgs build();
   }
@@ -99,8 +105,14 @@ public abstract class QueryBuilderArgs implements Serializable {
                                    partitionColumn, datePartition, partitionColumn, nextPartition);
             })
     ).orElse("");
+    String fieldsList;
+    if (!fields().isPresent()) {
+      fieldsList = "*";
+    } else {
+      fieldsList = StringUtils.join(fields().get(), ',');
+    }
     return Lists.newArrayList(
-        String.format("SELECT * FROM %s%s%s", this.tableName(), where, limit));
+        String.format("SELECT %s FROM %s%s%s", fieldsList, this.tableName(), where, limit));
   }
 
 }
