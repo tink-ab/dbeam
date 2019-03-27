@@ -297,4 +297,16 @@ class JdbcExportArgsTest extends FlatSpec with Matchers {
         "--table=some_table --password=secret --avroCodec=lzma")
     }
   }
+  it should "configure fields to include" in {
+    val options = optionsFromArgs("--connectionUrl=jdbc:postgresql://some_db --table=some_table " +
+      "--password=secret --fields=field1,field2")
+
+    options.fields() should be (List("field1", "field2").asJava)
+  }
+  it should "fail on invalid field name" in {
+    a[IllegalArgumentException] should be thrownBy {
+      optionsFromArgs("--connectionUrl=jdbc:postgresql://some_db " +
+        "--table=some_table --password=secret --fields=field1,field:2,field3")
+    }
+  }
 }

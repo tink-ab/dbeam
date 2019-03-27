@@ -53,7 +53,7 @@ public class BeamJdbcAvroSchema {
       dbName = connection.getCatalog();
       generatedSchema = JdbcAvroSchema.createSchemaByReadingOneRow(
           connection, args.queryBuilderArgs().tableName(),
-          args.avroSchemaNamespace(), avroDoc, args.useAvroLogicalTypes());
+          args.avroSchemaNamespace(), avroDoc, args.useAvroLogicalTypes(), args.fields());
     }
     final long elapsedTimeSchema = System.currentTimeMillis() - startTimeMillis;
     LOGGER.info("Elapsed time to schema {} seconds", elapsedTimeSchema / 1000.0);
