@@ -45,6 +45,7 @@ import static java.sql.Types.TINYINT;
 import static java.sql.Types.VARBINARY;
 import static java.sql.Types.VARCHAR;
 
+import com.spotify.dbeam.field.FieldUtils;
 import java.sql.Connection;
 import java.sql.JDBCType;
 import java.sql.ResultSet;
@@ -52,10 +53,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,7 @@ public class JdbcAvroSchema {
 
   public static Schema createSchemaByReadingOneRow(
       Connection connection, String tableName, String avroSchemaNamespace,
-      String avroDoc, boolean useLogicalTypes, List<String> fields)
+      String avroDoc, boolean useLogicalTypes, Map<String, Optional<String>> fields)
       throws SQLException {
     LOGGER.debug("Creating Avro schema based on the first read row from the database");
     try (Statement statement = connection.createStatement()) {
@@ -73,7 +74,7 @@ public class JdbcAvroSchema {
       if (fields.isEmpty()) {
         fieldsList = "*";
       } else {
-        fieldsList = StringUtils.join(fields, ',');
+        fieldsList = FieldUtils.createSelectExpression(fields);
       }
       final ResultSet
           resultSet =

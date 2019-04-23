@@ -29,8 +29,8 @@ import com.spotify.dbeam.args.JdbcConnectionArgs;
 import com.spotify.dbeam.args.JdbcExportArgs;
 import com.spotify.dbeam.args.QueryBuilderArgs;
 
+import com.spotify.dbeam.field.FieldUtils;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.beam.sdk.options.PipelineOptions;
@@ -80,7 +80,8 @@ public class JdbcExportArgsFactory {
         exportOptions.getFetchSize(),
         exportOptions.getAvroCodec());
 
-    validateFields(exportOptions.getFields());
+    FieldUtils.validateFields(exportOptions.getFields());
+    Map<String, Optional<String>> fieldMap = FieldUtils.parseFields(exportOptions.getFields());
 
     return JdbcExportArgs.create(
         jdbcAvroArgs,
@@ -88,7 +89,7 @@ public class JdbcExportArgsFactory {
         exportOptions.getAvroSchemaNamespace(),
         Optional.ofNullable(exportOptions.getAvroDoc()),
         exportOptions.isUseAvroLogicalTypes(),
-        exportOptions.getFields()
+        fieldMap
     );
   }
 
@@ -114,7 +115,7 @@ public class JdbcExportArgsFactory {
         .setPartitionColumn(partitionColumn)
         .setPartition(partition)
         .setPartitionPeriod(partitionPeriod)
-        .setFields(Optional.ofNullable(options.getFields()))
+        .setFields(FieldUtils.parseFields(options.getFields()))
         .build();
   }
 
@@ -133,18 +134,6 @@ public class JdbcExportArgsFactory {
         partitionDateTime, minPartitionDateTime
     );
     return partitionDateTime;
-  }
-
-  private static void validateFields(List<String> fields) {
-    if (fields != null) {
-      for (String field : fields) {
-        if (!field.matches("^[a-zA-Z0-9_-]*$")) {
-          final String message = "The field " + field + " includes invalid characters.";
-          LOGGER.error(message);
-          throw new IllegalArgumentException(message);
-        }
-      }
-    }
   }
 
 }

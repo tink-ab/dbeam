@@ -24,8 +24,8 @@ import com.google.auto.value.AutoValue;
 
 import java.io.Serializable;
 import java.sql.Connection;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @AutoValue
@@ -41,7 +41,7 @@ public abstract class JdbcExportArgs implements Serializable {
 
   public abstract Boolean useAvroLogicalTypes();
 
-  public abstract List<String> fields();
+  public abstract Map<String, Optional<String>> fields();
 
   @AutoValue.Builder
   abstract static class Builder {
@@ -56,7 +56,7 @@ public abstract class JdbcExportArgs implements Serializable {
 
     abstract Builder setUseAvroLogicalTypes(Boolean useAvroLogicalTypes);
 
-    abstract Builder setFields(List<String> fields);
+    abstract Builder setFields(Map<String, Optional<String>> fields);
 
     abstract JdbcExportArgs build();
   }
@@ -68,7 +68,7 @@ public abstract class JdbcExportArgs implements Serializable {
             "dbeam_generated",
             Optional.empty(),
             false,
-            Collections.emptyList());
+            new HashMap<>());
   }
 
   public static JdbcExportArgs create(JdbcAvroArgs jdbcAvroArgs,
@@ -76,14 +76,14 @@ public abstract class JdbcExportArgs implements Serializable {
                                       String avroSchemaNamespace,
                                       Optional<String> avroDoc,
                                       Boolean useAvroLogicalTypes,
-                                      List<String> fields) {
+                                      Map<String, Optional<String>> fields) {
     return new AutoValue_JdbcExportArgs.Builder()
         .setJdbcAvroOptions(jdbcAvroArgs)
         .setQueryBuilderArgs(queryBuilderArgs)
         .setAvroSchemaNamespace(avroSchemaNamespace)
         .setAvroDoc(avroDoc)
         .setUseAvroLogicalTypes(useAvroLogicalTypes)
-        .setFields(fields == null ? Collections.emptyList() : fields)
+        .setFields(fields)
         .build();
   }
 
