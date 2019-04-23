@@ -93,7 +93,7 @@ public interface JdbcExportPipelineOptions extends DBeamPipelineOptions {
   void setAvroCodec(String value);
 
   @Description(
-          "List of whitelisted fields. If not provided, all fields are exported.")
+      "List of whitelisted fields (Separated by comma). If not provided, all fields are exported.")
   List<String> getFields();
 
   void setFields(List<String> value);

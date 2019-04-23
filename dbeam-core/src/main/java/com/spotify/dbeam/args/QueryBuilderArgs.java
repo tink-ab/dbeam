@@ -24,12 +24,13 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import com.spotify.dbeam.field.FieldUtils;
 import java.io.Serializable;
 import java.sql.Connection;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
@@ -51,7 +52,7 @@ public abstract class QueryBuilderArgs implements Serializable {
 
   public abstract ReadablePeriod partitionPeriod();
 
-  public abstract Optional<List<String>> fields();
+  public abstract Map<String, Optional<String>> fields();
 
   public abstract Builder builder();
 
@@ -74,7 +75,7 @@ public abstract class QueryBuilderArgs implements Serializable {
 
     public abstract Builder setPartitionPeriod(ReadablePeriod partitionPeriod);
 
-    public abstract Builder setFields(Optional<List<String>> fields);
+    public abstract Builder setFields(Map<String, Optional<String>> fields);
 
     public abstract QueryBuilderArgs build();
   }
@@ -91,6 +92,7 @@ public abstract class QueryBuilderArgs implements Serializable {
     return new AutoValue_QueryBuilderArgs.Builder()
         .setTableName(tableName)
         .setPartitionPeriod(Days.ONE)
+        .setFields(new HashMap<>())
         .build();
   }
 
@@ -106,10 +108,10 @@ public abstract class QueryBuilderArgs implements Serializable {
             })
     ).orElse("");
     String fieldsList;
-    if (!fields().isPresent()) {
+    if (fields().isEmpty()) {
       fieldsList = "*";
     } else {
-      fieldsList = StringUtils.join(fields().get(), ',');
+      fieldsList = FieldUtils.createSelectExpression(fields());
     }
     return Lists.newArrayList(
         String.format("SELECT %s FROM %s%s%s", fieldsList, this.tableName(), where, limit));

@@ -18,7 +18,7 @@
 package com.spotify.dbeam.avro
 
 import java.nio.ByteBuffer
-import java.util.UUID
+import java.util.{Optional, UUID}
 
 import com.spotify.dbeam.JdbcTestFixtures
 import org.apache.avro.Schema
@@ -46,7 +46,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
       db.source.createConnection(),
       "coffees", "dbeam_generated",
-      "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test", false, List[String]().asJava)
+      "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test", false, Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
     actual.getNamespace should be ("dbeam_generated")
@@ -84,7 +84,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
       db.source.createConnection(),
       "coffees", "dbeam_generated",
       "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test", false,
-      List[String]("COF_NAME", "UID").asJava)
+      Map[String, Optional[String]](("COF_NAME", Optional.empty()), ("UID", Optional.empty())).asJava)
 
     actual shouldNot be (null)
     actual.getNamespace should be ("dbeam_generated")
@@ -111,7 +111,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
       "coffees", "dbeam_generated",
       "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test",
       true,
-      List[String]().asJava)
+      Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
     actual.getNamespace should be ("dbeam_generated")
@@ -146,7 +146,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   it should "create schema under specified namespace" in {
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
-      db.source.createConnection(), "coffees", "ns", "doc", false, List[String]().asJava)
+      db.source.createConnection(), "coffees", "ns", "doc", false, Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
     actual.getNamespace should be ("ns")
@@ -154,7 +154,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   it should "create schema with specified doc string" in {
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
-      db.source.createConnection(), "coffees", "ns", "doc", false, List[String]().asJava)
+      db.source.createConnection(), "coffees", "ns", "doc", false, Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
     actual.getDoc should be ("doc")
