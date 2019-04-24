@@ -45,7 +45,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val fieldCount = 12
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
       db.source.createConnection(),
-      "coffees", "dbeam_generated",
+      "COFFEES", "dbeam_generated",
       "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test", false, Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
@@ -82,7 +82,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val fieldCount = 2
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
       db.source.createConnection(),
-      "coffees", "dbeam_generated",
+      "COFFEES", "dbeam_generated",
       "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test", false,
       Map[String, Optional[String]](("COF_NAME", Optional.empty()), ("UID", Optional.empty())).asJava)
 
@@ -108,7 +108,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val fieldCount = 12
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
       db.source.createConnection(),
-      "coffees", "dbeam_generated",
+      "COFFEES", "dbeam_generated",
       "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test",
       true,
       Map[String, Optional[String]]().asJava)
@@ -170,7 +170,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   it should "convert jdbc result set to avro generic record" in {
     val rs = db.source.createConnection().createStatement().executeQuery(s"SELECT * FROM coffees")
-    val schema = JdbcAvroSchema.createAvroSchema(rs, "dbeam_generated","connection", "doc", false)
+    val schema = JdbcAvroSchema.createAvroSchema(rs, "dbeam_generated", "table_name", "connection", "doc", false)
     rs.next()
 
     val mappings = JdbcAvroRecord.computeAllMappings(rs)
