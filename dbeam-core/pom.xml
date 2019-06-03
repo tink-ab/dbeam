@@ -104,9 +104,9 @@
       </dependency>
 
       <dependency>
-          <groupId>com.bettercloud</groupId>
+          <groupId>se.tink</groupId>
           <artifactId>vault-java-driver</artifactId>
-          <version>4.0.0</version>
+          <version>4.0.0-tink-SNAPSHOT</version>
       </dependency>
 
       <!-- Test Deps -->
