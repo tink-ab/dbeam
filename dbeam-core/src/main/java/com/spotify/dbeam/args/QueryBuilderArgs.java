@@ -24,8 +24,11 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import com.spotify.dbeam.field.FieldUtils;
 import java.io.Serializable;
 import java.sql.Connection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import org.joda.time.DateTime;
@@ -49,6 +52,8 @@ public abstract class QueryBuilderArgs implements Serializable {
 
   public abstract ReadablePeriod partitionPeriod();
 
+  public abstract Map<String, Optional<String>> fields();
+
   public abstract Builder builder();
 
   @AutoValue.Builder
@@ -70,6 +75,8 @@ public abstract class QueryBuilderArgs implements Serializable {
 
     public abstract Builder setPartitionPeriod(ReadablePeriod partitionPeriod);
 
+    public abstract Builder setFields(Map<String, Optional<String>> fields);
+
     public abstract QueryBuilderArgs build();
   }
 
@@ -85,6 +92,7 @@ public abstract class QueryBuilderArgs implements Serializable {
     return new AutoValue_QueryBuilderArgs.Builder()
         .setTableName(tableName)
         .setPartitionPeriod(Days.ONE)
+        .setFields(new HashMap<>())
         .build();
   }
 
@@ -99,8 +107,14 @@ public abstract class QueryBuilderArgs implements Serializable {
                                    partitionColumn, datePartition, partitionColumn, nextPartition);
             })
     ).orElse("");
+    String fieldsList;
+    if (fields().isEmpty()) {
+      fieldsList = "*";
+    } else {
+      fieldsList = FieldUtils.createSelectExpression(fields());
+    }
     return Lists.newArrayList(
-        String.format("SELECT * FROM %s%s%s", this.tableName(), where, limit));
+        String.format("SELECT %s FROM %s%s%s", fieldsList, this.tableName(), where, limit));
   }
 
 }

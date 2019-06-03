@@ -45,6 +45,7 @@ import static java.sql.Types.TINYINT;
 import static java.sql.Types.VARBINARY;
 import static java.sql.Types.VARCHAR;
 
+import com.spotify.dbeam.field.FieldUtils;
 import java.sql.Connection;
 import java.sql.JDBCType;
 import java.sql.ResultSet;
@@ -52,6 +53,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.slf4j.Logger;
@@ -63,16 +67,22 @@ public class JdbcAvroSchema {
 
   public static Schema createSchemaByReadingOneRow(
       Connection connection, String tableName, String avroSchemaNamespace,
-      String avroDoc, boolean useLogicalTypes)
+      String avroDoc, boolean useLogicalTypes, Map<String, Optional<String>> fields)
       throws SQLException {
     LOGGER.debug("Creating Avro schema based on the first read row from the database");
     try (Statement statement = connection.createStatement()) {
+      String fieldsList;
+      if (fields.isEmpty()) {
+        fieldsList = "*";
+      } else {
+        fieldsList = FieldUtils.createSelectExpression(fields);
+      }
       final ResultSet
           resultSet =
-          statement.executeQuery(String.format("SELECT * FROM %s LIMIT 1", tableName));
+          statement.executeQuery(String.format("SELECT %s FROM %s LIMIT 1", fieldsList, tableName));
 
       Schema schema = JdbcAvroSchema.createAvroSchema(
-          resultSet, avroSchemaNamespace, connection.getMetaData().getURL(), avroDoc,
+          resultSet, avroSchemaNamespace, tableName, connection.getMetaData().getURL(), avroDoc,
           useLogicalTypes);
       LOGGER.info("Schema created successfully. Generated schema: {}", schema.toString());
       return schema;
@@ -80,13 +90,14 @@ public class JdbcAvroSchema {
   }
 
   public static Schema createAvroSchema(
-      ResultSet resultSet, String avroSchemaNamespace, String connectionUrl,
-      String avroDoc, boolean useLogicalTypes)
+      ResultSet resultSet, String avroSchemaNamespace, String tableNameProvided,
+      String connectionUrl, String avroDoc, boolean useLogicalTypes)
       throws SQLException {
     ResultSetMetaData meta = resultSet.getMetaData();
     String tableName = "no_table_name";
-
-    if (meta.getColumnCount() > 0) {
+    if (Objects.nonNull(tableNameProvided) && !tableNameProvided.isEmpty()) {
+      tableName = tableNameProvided;
+    } else if (meta.getColumnCount() > 0) {
       tableName = normalizeForAvro(meta.getTableName(1));
     }
     SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder.record(tableName)

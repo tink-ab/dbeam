@@ -20,6 +20,7 @@
 
 package com.spotify.dbeam.options;
 
+import java.util.List;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
 
@@ -90,4 +91,10 @@ public interface JdbcExportPipelineOptions extends DBeamPipelineOptions {
   String getAvroCodec();
 
   void setAvroCodec(String value);
+
+  @Description(
+      "List of whitelisted fields (Separated by comma). If not provided, all fields are exported.")
+  List<String> getFields();
+
+  void setFields(List<String> value);
 }

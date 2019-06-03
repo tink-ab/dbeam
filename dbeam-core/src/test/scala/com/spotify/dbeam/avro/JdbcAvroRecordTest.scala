@@ -18,7 +18,7 @@
 package com.spotify.dbeam.avro
 
 import java.nio.ByteBuffer
-import java.util.UUID
+import java.util.{Optional, UUID}
 
 import com.spotify.dbeam.JdbcTestFixtures
 import org.apache.avro.Schema
@@ -45,8 +45,8 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val fieldCount = 12
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
       db.source.createConnection(),
-      "coffees", "dbeam_generated",
-      "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test", false)
+      "COFFEES", "dbeam_generated",
+      "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test", false, Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
     actual.getNamespace should be ("dbeam_generated")
@@ -78,13 +78,40 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     actual.getDoc should be ("Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test")
   }
 
+  it should "create schema with only two fields" in {
+    val fieldCount = 2
+    val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
+      db.source.createConnection(),
+      "COFFEES", "dbeam_generated",
+      "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test", false,
+      Map[String, Optional[String]](("COF_NAME", Optional.empty()), ("UID", Optional.empty())).asJava)
+
+    actual shouldNot be (null)
+    actual.getNamespace should be ("dbeam_generated")
+    actual.getProp("tableName") should be ("COFFEES")
+    actual.getProp("connectionUrl") should be ("jdbc:h2:mem:test")
+    actual.getFields.size() should be (fieldCount)
+    actual.getFields.asScala.map(_.name()) should
+      be (List("COF_NAME", "UID"))
+    actual.getFields.asScala.map(_.schema().getType) should
+      be (List.fill(fieldCount)(Schema.Type.UNION))
+    actual.getFields.asScala.map(_.schema().getTypes.get(0).getType) should
+      be (List.fill(fieldCount)(Schema.Type.NULL))
+    actual.getFields.asScala.map(_.schema().getTypes.size()) should be (List.fill(fieldCount)(2))
+    actual.getField("COF_NAME").schema().getTypes.get(1).getType should be (Schema.Type.STRING)
+    actual.getField("UID").schema().getTypes.get(1).getType should be (Schema.Type.BYTES)
+    actual.toString shouldNot be (null)
+    actual.getDoc should be ("Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test")
+  }
+
   it should "create schema with logical types" in {
     val fieldCount = 12
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
       db.source.createConnection(),
-      "coffees", "dbeam_generated",
+      "COFFEES", "dbeam_generated",
       "Generate schema from JDBC ResultSet from COFFEES jdbc:h2:mem:test",
-      true)
+      true,
+      Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
     actual.getNamespace should be ("dbeam_generated")
@@ -119,7 +146,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   it should "create schema under specified namespace" in {
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
-      db.source.createConnection(), "coffees", "ns", "doc", false)
+      db.source.createConnection(), "coffees", "ns", "doc", false, Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
     actual.getNamespace should be ("ns")
@@ -127,7 +154,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   it should "create schema with specified doc string" in {
     val actual: Schema = JdbcAvroSchema.createSchemaByReadingOneRow(
-      db.source.createConnection(), "coffees", "ns", "doc", false)
+      db.source.createConnection(), "coffees", "ns", "doc", false, Map[String, Optional[String]]().asJava)
 
     actual shouldNot be (null)
     actual.getDoc should be ("doc")
@@ -143,7 +170,7 @@ class JdbcAvroRecordTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   it should "convert jdbc result set to avro generic record" in {
     val rs = db.source.createConnection().createStatement().executeQuery(s"SELECT * FROM coffees")
-    val schema = JdbcAvroSchema.createAvroSchema(rs, "dbeam_generated","connection", "doc", false)
+    val schema = JdbcAvroSchema.createAvroSchema(rs, "dbeam_generated", "table_name", "connection", "doc", false)
     rs.next()
 
     val mappings = JdbcAvroRecord.computeAllMappings(rs)
