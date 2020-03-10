@@ -22,6 +22,7 @@ package com.spotify.dbeam.jobs;
 
 import com.google.common.base.Preconditions;
 
+import com.google.common.base.Strings;
 import com.spotify.dbeam.args.JdbcExportArgs;
 import com.spotify.dbeam.avro.BeamJdbcAvroSchema;
 import com.spotify.dbeam.avro.JdbcAvroIO;
@@ -42,6 +43,7 @@ import org.apache.beam.sdk.PipelineResult;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Create;
+import org.apache.beam.sdk.values.PCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,13 +99,25 @@ public class JdbcAvroJob {
     }
     LOGGER.info("Running queries: {}", queries.toString());
 
-    pipeline.apply("JdbcQueries", Create.of(queries))
-        .apply("JdbcAvroSave", JdbcAvroIO.createWrite(
-            output,
-            ".avro",
-            generatedSchema,
-            jdbcExportArgs.jdbcAvroOptions()
-        ));
+    PCollection<String> outputPipeline = pipeline.apply("JdbcQueries", Create.of(queries));
+    if(!Strings.isNullOrEmpty(pipelineOptions.as(OutputOptions.class).getOutput())) {
+      outputPipeline.apply("JdbcAvroSave", JdbcAvroIO.createWrite(
+              output,
+              ".avro",
+              generatedSchema,
+              jdbcExportArgs.jdbcAvroOptions()
+      ));
+    }
+    if(!Strings.isNullOrEmpty(pipelineOptions.as(OutputOptions.class).getParquetOutputFile())) {
+      outputPipeline.apply("JdbcParquetSave", JdbcAvroIO.createWrite(
+              output,
+              ".parquet",
+              generatedSchema,
+              jdbcExportArgs.jdbcAvroOptions()
+      ));
+    }
+
+
   }
 
   public Pipeline getPipeline() {
