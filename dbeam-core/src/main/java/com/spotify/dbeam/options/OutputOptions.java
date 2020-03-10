@@ -32,4 +32,8 @@ public interface OutputOptions extends PipelineOptions {
 
   void setOutput(String value);
 
+  @Description("Path of the .parquet file to write to")
+  String getParquetOutputFile();
+
+  void setParquetOutputFile(String value);
 }
